@@ -46,19 +46,33 @@ class _HomePageState extends State<HomePage> {
   String importStatus = 'No CSV uploaded yet.';
 
   Future<void> uploadCsv() async {
+    print('Upload CSV button clicked');
+
     final result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['csv'],
       withData: true,
     );
 
-    if (result == null || result.files.single.bytes == null) {
+    if (result == null) {
+      print('No file selected');
       return;
     }
 
-    final bytes = result.files.single.bytes!;
+    print('Selected file: ${result.files.single.name}');
+
+    final bytes = result.files.single.bytes;
+
+    if (bytes == null) {
+      print('File bytes are null');
+      return;
+    }
+
     final csvString = utf8.decode(bytes);
+    print(csvString);
+
     final rows = const CsvToListConverter().convert(csvString);
+    print('Rows count: ${rows.length}');
 
     final records = rows.skip(1).map((row) {
       return SalesRecord(
@@ -71,6 +85,8 @@ class _HomePageState extends State<HomePage> {
       salesData = records;
       importStatus = 'Uploaded: ${result.files.single.name}';
     });
+
+    print('Imported records: ${records.length}');
   }
 
   double get totalSales => salesData.fold(0, (sum, item) => sum + item.sales);
